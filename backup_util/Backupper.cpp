@@ -66,15 +66,19 @@ void Backupper::copy_directory(std::string source, std::string target) {
             }
         }
         for (const fs::directory_entry& entry : fs::directory_iterator(source)) {
+        std::vector<std::thread> threads;
             const fs::path path = entry.path();
             const fs::path filename = path.filename();
             const fs::path target_path = target / filename;
 
             if (fs::is_directory(path)) {
-                copy_directory(path.string(), target_path.string());
+                threads.emplace_back(&Backupper::copy_directory, this, path.string(), target_path.string());
             }
             else {
                 fs::copy_file(path, target_path, fs::copy_options::overwrite_existing);
+            }
+            for (int i = 0; i < threads.size(); i++) {
+                threads[i].join();
             }
         }
         std::cout << "Directory has been copied succesfully!\n";
