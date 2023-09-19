@@ -50,6 +50,8 @@ void Backupper::save_backups() {
 
 void Backupper::copy_directory(std::string source, std::string target) {
     try {
+        std::vector<std::future<void>> futures;
+
         if (!fs::exists(source) || !fs::is_directory(source)) {
             std::cout << "Can't find source directory or it is not a directory!\n";
             return;

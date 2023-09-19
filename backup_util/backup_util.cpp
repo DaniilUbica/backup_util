@@ -6,8 +6,6 @@ void gui_controll(Backupper& backupper) {
     bool is_working = true;
     std::cout << "====== BACKUPPER APP ======\n";
     while (is_working) {
-        backupper.save_backups();
-
         int choose = 0;
         std::cout << "1. Add new backup\n";
         std::cout << "2. Start backup\n";
@@ -26,6 +24,7 @@ void gui_controll(Backupper& backupper) {
             std::cout << "\nEnter time: ";
             std::cin >> time;
             backupper.add_backup(source, target, time);
+            backupper.save_backups();
         }
         else if (choose == 2) {
             backupper.run_backup();
