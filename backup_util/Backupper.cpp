@@ -12,22 +12,7 @@ inline std::vector<std::string> split(std::string const& str, const char delim) 
 }
 
 Backupper::Backupper() {
-    std::string source;
-    std::string target;
-    std::string datetime;
-
-    std::fstream file(BACKUPS_FILE_PATH);
-    while (!file.eof()) {
-        std::string info;
-        std::getline(file, info, '\n');
-        std::vector<std::string> data = split(info, '=');
-        if (data.size() > 2) {
-            source = data[0];
-            target = data[1];
-            datetime = data[2];
-        }
-        add_backup(source, target, datetime);
-    }
+    read_backups_from_file();
 }
 
 Backupper::~Backupper() {
@@ -48,10 +33,27 @@ void Backupper::save_backups() {
 	file.close();
 }
 
+void Backupper::read_backups_from_file() {
+    std::string source;
+    std::string target;
+    std::string datetime;
+
+    std::fstream file(BACKUPS_FILE_PATH);
+    while (!file.eof()) {
+        std::string info;
+        std::getline(file, info, '\n');
+        std::vector<std::string> data = split(info, '=');
+        if (data.size() > 2) {
+            source = data[0];
+            target = data[1];
+            datetime = data[2];
+        }
+        add_backup(source, target, datetime);
+    }
+}
+
 void Backupper::copy_directory(std::string source, std::string target) {
     try {
-        std::vector<std::future<void>> futures;
-
         if (!fs::exists(source) || !fs::is_directory(source)) {
             std::cout << "Can't find source directory or it is not a directory!\n";
             return;
@@ -106,6 +108,39 @@ void Backupper::run_backup() {
     for (int i = 0; i < _backups.size(); i++) {
         threads[i].join();
     }
+}
+
+void Backupper::update() {
+    while (true) {
+        _backups.clear();
+        read_backups_from_file();
+
+        std::time_t t = std::time(0);
+        std::tm* now = std::localtime(&t);
+        std::vector<std::thread> threads;
+        for (backup_info* backup : _backups) {
+            if (std::stoi(split(backup->datetime, ':')[0]) == now->tm_hour && 
+                std::stoi(split(backup->datetime, ':')[1]) == now->tm_min) {
+                for (int i = 0; i < _backups.size(); i++) {
+                    threads.emplace_back(&Backupper::copy_directory, this, backup->source, backup->target);
+                }
+            }
+        }
+        for (int i = 0; i < threads.size(); i++) {
+            threads[i].join();
+        }
+    }
+}
+
+std::tuple<int, int> Backupper::read_options_file() {
+    int show_console;
+    int show_gui;
+    std::fstream file(OPTIONS_FILE_NAME);
+
+    file >> show_console;
+    file >> show_gui;
+
+    return std::tuple(show_console, show_gui);
 }
 
 std::vector<backup_info*> Backupper::get_backups() {

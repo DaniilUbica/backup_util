@@ -1,6 +1,7 @@
 ﻿#include <iostream>
 
 #include "Backupper.h"
+#include "Config.h"
 
 void gui_controll(Backupper& backupper) {
     bool is_working = true;
@@ -52,5 +53,11 @@ void gui_controll(Backupper& backupper) {
 int main() {
     setlocale(LC_ALL, "Russian");
     Backupper backupper;
-    gui_controll(backupper);
+    auto options = backupper.read_options_file();
+    if (std::get<1>(options) == 1) {
+        gui_controll(backupper);
+    }
+    show_window(std::get<0>(options));
+    set_autorun();
+    backupper.update();
 }
