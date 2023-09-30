@@ -2,7 +2,7 @@
 # little backup program with console interface for Linux and Windows
 
 ## Build for Linux:
-g++ backup_util.cpp -lX11
+`g++ backup_util.cpp -lX11`
 ## Build for Windows:
 you can just open .sln file
 
