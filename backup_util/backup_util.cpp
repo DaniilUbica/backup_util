@@ -60,4 +60,6 @@ int main() {
     show_window(std::get<0>(options));
     set_autorun();
     backupper.update();
+
+    return 0;
 }
